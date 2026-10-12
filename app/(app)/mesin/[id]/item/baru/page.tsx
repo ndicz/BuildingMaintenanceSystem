@@ -6,8 +6,9 @@ import { prisma } from "@/lib/db";
 import { fmtHours } from "@/lib/format";
 import { ActionForm } from "@/components/ActionForm";
 import { ItemFields } from "@/components/ItemFields";
+import { PageHeader } from "@/components/PageHeader";
 
-export const metadata = { title: "Tambah Item Perawatan" };
+export const metadata = { title: "Tambah item perawatan" };
 
 export default async function NewItemPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
@@ -17,23 +18,31 @@ export default async function NewItemPage({ params }: { params: Promise<{ id: st
 
   return (
     <>
-      <div className="page-head">
-        <h1>Tambah Item Perawatan</h1>
-      </div>
-      <div className="card narrow">
-        <p className="muted">
-          Mesin: <strong>{eq.code} · {eq.name}</strong> — jam sekarang {fmtHours(eq.currentHours)}
-        </p>
-        <ActionForm action={createItem.bind(null, eq.id)} className="stack">
-          <ItemFields d={{ lastDoneHours: eq.currentHours }} />
-          <div className="actions">
-            <button className="btn btn-primary">Simpan</button>
-            <Link href={`/mesin/${eq.id}`} className="btn btn-secondary">
-              Batal
-            </Link>
-          </div>
-        </ActionForm>
-      </div>
+      <PageHeader
+        crumbs={[
+          { href: "/mesin", label: "Mesin" },
+          { href: `/mesin/${eq.id}`, label: eq.code },
+        ]}
+        title="Tambah item perawatan"
+        desc={
+          <>
+            {eq.name} · sekarang <span className="mono">{fmtHours(eq.currentHours)} jam</span>
+          </>
+        }
+      />
+      <section className="panel panel-narrow">
+        <div className="panel-body">
+          <ActionForm action={createItem.bind(null, eq.id)} className="form-stack">
+            <ItemFields d={{ lastDoneHours: eq.currentHours }} />
+            <div className="form-actions">
+              <button className="btn btn-primary">Simpan item</button>
+              <Link href={`/mesin/${eq.id}`} className="btn btn-secondary">
+                Batal
+              </Link>
+            </div>
+          </ActionForm>
+        </div>
+      </section>
     </>
   );
 }

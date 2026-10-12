@@ -6,22 +6,34 @@ export function ItemFields({ d = {}, showActive = false }: { d?: Defaults; showA
   return (
     <>
       <Field label="Nama pekerjaan">
-        <input name="name" defaultValue={d.name} required placeholder="mis. Ganti oli mesin & filter oli" />
+        <input name="name" defaultValue={d.name} required placeholder="Ganti oli mesin & filter oli" />
       </Field>
       <div className="grid-2">
-        <Field label="Interval (tiap berapa jam)" hint="mis. 100, 250, 500">
-          <input name="intervalHours" type="number" inputMode="decimal" step="0.1" min="0.1" defaultValue={d.intervalHours} required />
+        <Field label="Dikerjakan tiap" hint="Mis. 100, 250, atau 500 jam.">
+          <div className="input-suffix">
+            <input name="intervalHours" type="number" inputMode="decimal" step="0.1" min="0.1" defaultValue={d.intervalHours} required />
+            <span>jam</span>
+          </div>
         </Field>
-        <Field label="Terakhir dikerjakan pada jam ke-" hint="Hitungan interval dimulai dari angka ini.">
-          <input name="lastDoneHours" type="number" inputMode="decimal" step="0.1" min="0" defaultValue={d.lastDoneHours ?? 0} required />
+        <Field label="Terakhir dikerjakan di jam" hint="Hitungan interval dimulai dari angka ini.">
+          <div className="input-suffix">
+            <input name="lastDoneHours" type="number" inputMode="decimal" step="0.1" min="0" defaultValue={d.lastDoneHours ?? 0} required />
+            <span>jam</span>
+          </div>
         </Field>
       </div>
-      <Field label="Keterangan / langkah kerja (opsional)">
-        <textarea name="description" rows={3} defaultValue={d.description} placeholder="mis. Oli SAE 15W-40, 18 liter" />
+      <Field label="Keterangan" hint="Opsional. Mis. jenis oli, jumlah, atau langkah kerja.">
+        <textarea name="description" rows={3} defaultValue={d.description} placeholder="Oli SAE 15W-40, 18 liter" />
       </Field>
       {showActive && (
         <label className="check">
-          <input type="checkbox" name="active" defaultChecked={d.active ?? true} /> Aktif (nonaktifkan bila tidak dipakai lagi)
+          <input type="checkbox" name="active" defaultChecked={d.active ?? true} />
+          <span>
+            Aktif
+            <span className="field-hint" style={{ display: "block" }}>
+              Matikan jika item ini tidak dipantau lagi. Riwayatnya tetap tersimpan.
+            </span>
+          </span>
         </label>
       )}
     </>

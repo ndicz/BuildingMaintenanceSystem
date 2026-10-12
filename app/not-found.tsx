@@ -1,13 +1,15 @@
 import Link from "next/link";
+import { Brand } from "@/components/Brand";
 
 export default function NotFound() {
   return (
-    <main className="login-wrap">
-      <div className="card login-card">
+    <main className="login">
+      <div className="login-box">
+        <Brand />
         <h1>Halaman tidak ditemukan</h1>
-        <p className="muted">Data yang dicari mungkin sudah dihapus.</p>
+        <p className="desc">Data yang dicari mungkin sudah dihapus atau alamatnya salah.</p>
         <Link href="/" className="btn btn-primary">
-          Kembali ke Dashboard
+          Kembali ke ringkasan
         </Link>
       </div>
     </main>

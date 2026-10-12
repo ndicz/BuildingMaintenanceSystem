@@ -48,7 +48,13 @@ export async function getAttentionItems() {
       id: it.id,
       name: it.name,
       intervalHours: it.intervalHours,
-      equipment: { id: it.equipment.id, code: it.equipment.code, name: it.equipment.name, location: it.equipment.location },
+      equipment: {
+        id: it.equipment.id,
+        code: it.equipment.code,
+        name: it.equipment.name,
+        location: it.equipment.location,
+        currentHours: it.equipment.currentHours,
+      },
       info: computeStatus(it.intervalHours, it.lastDoneHours, it.equipment.currentHours, percent),
     }))
     .filter((it) => it.info.status !== "ok")
@@ -85,4 +91,16 @@ export async function getEquipmentOptions() {
     select: { id: true, code: true, name: true, currentHours: true },
     orderBy: { code: "asc" },
   });
+}
+
+/** Item yang perlu perhatian, dikelompokkan per mesin (mesin paling mendesak di atas). */
+export async function getAttentionByEquipment() {
+  const items = await getAttentionItems();
+  const groups = new Map<number, { equipment: (typeof items)[number]["equipment"]; items: typeof items }>();
+  for (const it of items) {
+    const g = groups.get(it.equipment.id);
+    if (g) g.items.push(it);
+    else groups.set(it.equipment.id, { equipment: it.equipment, items: [it] });
+  }
+  return [...groups.values()];
 }

@@ -5,8 +5,9 @@ import { prisma } from "@/lib/db";
 import { ActionForm } from "@/components/ActionForm";
 import { EquipmentFields } from "@/components/EquipmentFields";
 import { Field } from "@/components/Field";
+import { PageHeader } from "@/components/PageHeader";
 
-export const metadata = { title: "Tambah Mesin" };
+export const metadata = { title: "Tambah mesin" };
 
 export default async function NewEquipmentPage() {
   await requireAdmin();
@@ -18,32 +19,32 @@ export default async function NewEquipmentPage() {
 
   return (
     <>
-      <div className="page-head">
-        <h1>Tambah Mesin</h1>
-      </div>
-      <div className="card narrow">
-        <ActionForm action={createEquipment} className="stack">
-          <EquipmentFields />
-          {sources.length > 0 && (
-            <Field label="Salin item perawatan dari mesin lain (opsional)" hint="Cocok untuk mesin sejenis. Item bisa diubah setelahnya.">
-              <select name="copyFromId" defaultValue="">
-                <option value="">— Tidak menyalin —</option>
-                {sources.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.code} · {s.name} ({s._count.items} item)
-                  </option>
-                ))}
-              </select>
-            </Field>
-          )}
-          <div className="actions">
-            <button className="btn btn-primary">Simpan</button>
-            <Link href="/mesin" className="btn btn-secondary">
-              Batal
-            </Link>
-          </div>
-        </ActionForm>
-      </div>
+      <PageHeader crumbs={[{ href: "/mesin", label: "Mesin" }]} title="Tambah mesin" />
+      <section className="panel panel-narrow">
+        <div className="panel-body">
+          <ActionForm action={createEquipment} className="form-stack">
+            <EquipmentFields />
+            {sources.length > 0 && (
+              <Field label="Salin item perawatan dari" hint="Untuk mesin sejenis. Itemnya tetap bisa diubah setelah disimpan.">
+                <select name="copyFromId" defaultValue="">
+                  <option value="">Jangan salin</option>
+                  {sources.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.code} — {s.name} ({s._count.items} item)
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
+            <div className="form-actions">
+              <button className="btn btn-primary">Simpan mesin</button>
+              <Link href="/mesin" className="btn btn-secondary">
+                Batal
+              </Link>
+            </div>
+          </ActionForm>
+        </div>
+      </section>
     </>
   );
 }

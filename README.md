@@ -8,7 +8,8 @@ Tidak memakai sensor. Semua angka diisi teknisi lewat browser di HP atau kompute
 
 ## Fitur
 
-- **Input jam mesin**: teknisi memilih mesin dan mengetik angka hour meter. Angka tidak boleh mundur.
+- **Input jam mesin**: teknisi memilih mesin dan mengetik angka hour meter. Sebelum disimpan sudah terlihat
+  item apa saja yang akan jatuh tempo. Angka tidak boleh mundur.
 - **Status otomatis** per item perawatan:
   - 🔴 **Harus dikerjakan**: jam terpakai sudah mencapai interval
   - 🟡 **Segera**: sisa jam ≤ 10% dari interval (diatur lewat `SOON_THRESHOLD_PERCENT`)
@@ -18,7 +19,7 @@ Tidak memakai sensor. Semua angka diisi teknisi lewat browser di HP atau kompute
 - **Kelola mesin dan item** (admin): tambah, ubah, hapus mesin dan item perawatan, ubah interval, salin item dari mesin sejenis, koreksi jam mesin.
 - **Riwayat** pekerjaan selesai dan input jam, bisa difilter per mesin dan tanggal, serta bisa dicetak.
 - **Pengguna** dengan dua peran: **Admin** dan **Teknisi**. Teknisi yang sudah tidak bertugas cukup dinonaktifkan.
-- Tampilan ramah HP.
+- Tampilan ramah HP: menu di bawah layar dan tombol "Tandai selesai" yang menempel saat item dicentang.
 
 Cara hitung: `jam terpakai = jam mesin sekarang − jam saat item terakhir dikerjakan`.
 
@@ -95,7 +96,8 @@ prisma/
   seed.ts           data awal
 ```
 
-Teknologi: Next.js 15 (App Router), Prisma ORM, SQLite (lokal), bcrypt untuk password.
+Teknologi: Next.js 15 (App Router), Prisma ORM, SQLite (lokal), bcrypt untuk password,
+font IBM Plex dan ikon Lucide (semua terpasang lewat npm, tidak butuh internet saat dijalankan).
 
 ## Rencana pindah ke Vercel (nanti)
 

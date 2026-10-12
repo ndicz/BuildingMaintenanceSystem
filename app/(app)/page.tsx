@@ -1,100 +1,124 @@
 import Link from "next/link";
-import { getAttentionItems, getEquipmentOverview } from "@/lib/queries";
-import { fmtDateTime, fmtHours, fmtRemaining } from "@/lib/format";
-import { StatusBadge } from "@/components/StatusBadge";
+import { ChevronRight, Gauge, MapPin } from "lucide-react";
+import { getAttentionByEquipment, getEquipmentOverview } from "@/lib/queries";
+import { fmtDateLong, fmtHours, fmtRelative, fmtRemaining } from "@/lib/format";
+import { PageHeader } from "@/components/PageHeader";
+import { Meter, Status } from "@/components/Status";
 
-export const metadata = { title: "Dashboard" };
+export const metadata = { title: "Ringkasan" };
 
 const STALE_DAYS = 7;
 
 export default async function DashboardPage() {
-  const [items, equipment] = await Promise.all([getAttentionItems(), getEquipmentOverview()]);
-  const due = items.filter((i) => i.info.status === "due").length;
-  const soon = items.length - due;
+  const [groups, equipment] = await Promise.all([getAttentionByEquipment(), getEquipmentOverview()]);
+  const all = groups.flatMap((g) => g.items);
+  const due = all.filter((i) => i.info.status === "due").length;
+  const soon = all.length - due;
   const staleBefore = Date.now() - STALE_DAYS * 24 * 60 * 60 * 1000;
   const stale = equipment.filter((e) => !e.hoursUpdatedAt || e.hoursUpdatedAt.getTime() < staleBefore);
 
+  let desc: string;
+  if (equipment.length === 0) desc = "Belum ada mesin terdaftar.";
+  else if (all.length === 0) desc = `Semua perawatan di ${equipment.length} mesin masih aman.`;
+  else {
+    const parts = [due > 0 && `${due} pekerjaan harus dikerjakan`, soon > 0 && `${soon} segera jatuh tempo`].filter(Boolean);
+    desc = `${parts.join(" dan ")} di ${groups.length} mesin.`;
+  }
+
   return (
     <>
-      <div className="page-head">
-        <h1>Dashboard</h1>
-        <Link href="/input" className="btn btn-primary">
-          + Input Jam Mesin
-        </Link>
-      </div>
+      <PageHeader
+        eyebrow={fmtDateLong(new Date())}
+        title="Ringkasan"
+        desc={desc}
+        actions={
+          <Link href="/input" className="btn btn-primary">
+            <Gauge size={16} />
+            Input jam mesin
+          </Link>
+        }
+      />
 
-      <section className="stats">
-        <div className="stat stat-due">
-          <span className="stat-num">{due}</span>
-          <span>Harus dikerjakan</span>
+      <section className="panel summary">
+        <div className="is-due">
+          <div className="summary-num">{due}</div>
+          <div className="summary-label">Harus dikerjakan</div>
         </div>
-        <div className="stat stat-soon">
-          <span className="stat-num">{soon}</span>
-          <span>Segera</span>
+        <div className="is-soon">
+          <div className="summary-num">{soon}</div>
+          <div className="summary-label">Segera</div>
         </div>
-        <div className="stat">
-          <span className="stat-num">{equipment.length}</span>
-          <span>Mesin terdaftar</span>
+        <div>
+          <div className="summary-num">{equipment.length}</div>
+          <div className="summary-label">Mesin</div>
         </div>
-        <div className="stat">
-          <span className="stat-num">{stale.length}</span>
-          <span>Belum input jam &gt; {STALE_DAYS} hari</span>
+        <div>
+          <div className="summary-num">{stale.length}</div>
+          <div className="summary-label">Belum input &gt; {STALE_DAYS} hari</div>
         </div>
       </section>
 
-      <section className="card">
-        <h2>Perlu dikerjakan</h2>
-        {items.length === 0 ? (
-          <p className="empty">Semua item perawatan masih aman. 👍</p>
-        ) : (
-          <div className="table-wrap">
-            <table className="cards">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Pekerjaan</th>
-                  <th>Mesin</th>
-                  <th className="num">Interval</th>
-                  <th>Keterangan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((it) => (
-                  <tr key={it.id}>
-                    <td data-label="Status">
-                      <StatusBadge status={it.info.status} />
-                    </td>
-                    <td className="primary">{it.name}</td>
-                    <td data-label="Mesin">
-                      <div>
-                        <Link href={`/mesin/${it.equipment.id}`}>
-                          {it.equipment.code} · {it.equipment.name}
-                        </Link>
-                        {it.equipment.location && <div className="muted small">{it.equipment.location}</div>}
-                      </div>
-                    </td>
-                    <td className="num" data-label="Interval">tiap {fmtHours(it.intervalHours)} jam</td>
-                    <td data-label="Keterangan">{fmtRemaining(it.info.remaining)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {groups.length === 0 ? (
+        <section className="panel">
+          <div className="empty">
+            <strong>Tidak ada pekerjaan yang menunggu</strong>
+            Item yang mendekati jatuh tempo akan muncul di sini setelah jam mesin diinput.
           </div>
-        )}
-      </section>
+        </section>
+      ) : (
+        groups.map(({ equipment: eq, items }) => (
+          <section className="panel" key={eq.id}>
+            <div className="group-head">
+              <div>
+                <Link href={`/mesin/${eq.id}`} className="group-title">
+                  <span className="mono">{eq.code}</span>
+                  {eq.name}
+                </Link>
+                {eq.location && (
+                  <div className="group-sub">
+                    <MapPin size={13} />
+                    {eq.location}
+                  </div>
+                )}
+              </div>
+              <Link href={`/mesin/${eq.id}`} className="hours-chip">
+                <span className="mono">{fmtHours(eq.currentHours)}</span> jam <ChevronRight size={14} style={{ verticalAlign: "-2px" }} />
+              </Link>
+            </div>
+            <ul className="rows">
+              {items.map((it) => (
+                <li key={it.id} className="task">
+                  <div>
+                    <div className="task-name">{it.name}</div>
+                    <div className="task-meta">tiap {fmtHours(it.intervalHours)} jam</div>
+                  </div>
+                  <div className="task-state">
+                    <Status status={it.info.status} />
+                    <span className="remaining">{fmtRemaining(it.info.remaining)}</span>
+                  </div>
+                  <Meter used={it.info.used} interval={it.intervalHours} status={it.info.status} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      )}
 
       {stale.length > 0 && (
-        <section className="card">
-          <h2>Belum input jam lebih dari {STALE_DAYS} hari</h2>
-          <ul className="plain-list">
+        <section className="panel">
+          <div className="panel-head">
+            <h2>Belum input jam lebih dari {STALE_DAYS} hari</h2>
+          </div>
+          <ul className="log">
             {stale.map((e) => (
-              <li key={e.id}>
-                <Link href={`/input?mesin=${e.id}`}>
-                  {e.code} · {e.name}
-                </Link>{" "}
-                <span className="muted small">
-                  — terakhir {fmtDateTime(e.hoursUpdatedAt)} ({fmtHours(e.currentHours)} jam)
+              <li key={e.id} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                <span>
+                  <span className="mono muted">{e.code}</span> {e.name}
+                  <div className="sub">terakhir {fmtRelative(e.hoursUpdatedAt)}</div>
                 </span>
+                <Link href={`/input?mesin=${e.id}`} className="small nowrap">
+                  Input jam
+                </Link>
               </li>
             ))}
           </ul>

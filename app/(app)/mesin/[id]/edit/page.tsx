@@ -5,8 +5,9 @@ import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { ActionForm } from "@/components/ActionForm";
 import { EquipmentFields } from "@/components/EquipmentFields";
+import { PageHeader } from "@/components/PageHeader";
 
-export const metadata = { title: "Edit Mesin" };
+export const metadata = { title: "Ubah mesin" };
 
 export default async function EditEquipmentPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
@@ -16,31 +17,39 @@ export default async function EditEquipmentPage({ params }: { params: Promise<{ 
 
   return (
     <>
-      <div className="page-head">
-        <h1>Edit Mesin {eq.code}</h1>
-      </div>
-      <div className="card narrow">
-        <ActionForm action={updateEquipment.bind(null, eq.id)} className="stack">
-          <EquipmentFields d={eq} />
-          <p className="muted small">
-            Mengubah jam mesin di sini dianggap koreksi dan tetap dicatat di riwayat input jam. Untuk pencatatan rutin, gunakan menu
-            Input Jam.
+      <PageHeader
+        crumbs={[
+          { href: "/mesin", label: "Mesin" },
+          { href: `/mesin/${eq.id}`, label: eq.code },
+        ]}
+        title="Ubah mesin"
+      />
+      <section className="panel panel-narrow">
+        <div className="panel-body">
+          <ActionForm action={updateEquipment.bind(null, eq.id)} className="form-stack">
+            <EquipmentFields d={eq} hoursHint="Mengubah angka ini dianggap koreksi dan tetap tercatat di riwayat input jam." />
+            <div className="form-actions">
+              <button className="btn btn-primary">Simpan perubahan</button>
+              <Link href={`/mesin/${eq.id}`} className="btn btn-secondary">
+                Batal
+              </Link>
+            </div>
+          </ActionForm>
+        </div>
+      </section>
+      <section className="panel panel-narrow panel-danger">
+        <div className="panel-head">
+          <h2>Hapus mesin</h2>
+        </div>
+        <div className="panel-body">
+          <p className="muted small" style={{ marginBottom: 12 }}>
+            Semua item perawatan dan riwayat mesin ini ikut terhapus dan tidak bisa dikembalikan.
           </p>
-          <div className="actions">
-            <button className="btn btn-primary">Simpan</button>
-            <Link href={`/mesin/${eq.id}`} className="btn btn-secondary">
-              Batal
-            </Link>
-          </div>
-        </ActionForm>
-      </div>
-      <div className="card narrow danger-zone">
-        <h2>Hapus mesin</h2>
-        <p className="muted small">Semua item perawatan dan riwayat mesin ini ikut terhapus. Tindakan ini tidak bisa dibatalkan.</p>
-        <ActionForm action={deleteEquipment.bind(null, eq.id)} confirm={`Hapus mesin ${eq.code} beserta seluruh riwayatnya?`}>
-          <button className="btn btn-danger">Hapus Mesin</button>
-        </ActionForm>
-      </div>
+          <ActionForm action={deleteEquipment.bind(null, eq.id)} confirm={`Hapus mesin ${eq.code} beserta seluruh riwayatnya?`}>
+            <button className="btn btn-danger">Hapus mesin</button>
+          </ActionForm>
+        </div>
+      </section>
     </>
   );
 }

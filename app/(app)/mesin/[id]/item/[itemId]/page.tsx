@@ -6,8 +6,9 @@ import { prisma } from "@/lib/db";
 import { fmtHours } from "@/lib/format";
 import { ActionForm } from "@/components/ActionForm";
 import { ItemFields } from "@/components/ItemFields";
+import { PageHeader } from "@/components/PageHeader";
 
-export const metadata = { title: "Edit Item Perawatan" };
+export const metadata = { title: "Ubah item perawatan" };
 
 export default async function EditItemPage({ params }: { params: Promise<{ id: string; itemId: string }> }) {
   await requireAdmin();
@@ -22,30 +23,44 @@ export default async function EditItemPage({ params }: { params: Promise<{ id: s
 
   return (
     <>
-      <div className="page-head">
-        <h1>Edit Item Perawatan</h1>
-      </div>
-      <div className="card narrow">
-        <p className="muted">
-          Mesin: <strong>{item.equipment.code} · {item.equipment.name}</strong> — jam sekarang {fmtHours(item.equipment.currentHours)}
-        </p>
-        <ActionForm action={updateItem.bind(null, id, itemId)} className="stack">
-          <ItemFields d={item} showActive />
-          <div className="actions">
-            <button className="btn btn-primary">Simpan</button>
-            <Link href={`/mesin/${id}`} className="btn btn-secondary">
-              Batal
-            </Link>
-          </div>
-        </ActionForm>
-      </div>
-      <div className="card narrow danger-zone">
-        <h2>Hapus item</h2>
-        <p className="muted small">Riwayat pekerjaan item ini tetap tersimpan. Jika hanya ingin berhenti memantau, cukup nonaktifkan.</p>
-        <ActionForm action={deleteItem.bind(null, id, itemId)} confirm={`Hapus item "${item.name}"?`}>
-          <button className="btn btn-danger">Hapus Item</button>
-        </ActionForm>
-      </div>
+      <PageHeader
+        crumbs={[
+          { href: "/mesin", label: "Mesin" },
+          { href: `/mesin/${id}`, label: item.equipment.code },
+        ]}
+        title="Ubah item perawatan"
+        desc={
+          <>
+            {item.equipment.name} · sekarang <span className="mono">{fmtHours(item.equipment.currentHours)} jam</span>
+          </>
+        }
+      />
+      <section className="panel panel-narrow">
+        <div className="panel-body">
+          <ActionForm action={updateItem.bind(null, id, itemId)} className="form-stack">
+            <ItemFields d={item} showActive />
+            <div className="form-actions">
+              <button className="btn btn-primary">Simpan perubahan</button>
+              <Link href={`/mesin/${id}`} className="btn btn-secondary">
+                Batal
+              </Link>
+            </div>
+          </ActionForm>
+        </div>
+      </section>
+      <section className="panel panel-narrow panel-danger">
+        <div className="panel-head">
+          <h2>Hapus item</h2>
+        </div>
+        <div className="panel-body">
+          <p className="muted small" style={{ marginBottom: 12 }}>
+            Riwayat pekerjaan item ini tetap tersimpan. Kalau hanya ingin berhenti memantau, cukup matikan pilihan “Aktif”.
+          </p>
+          <ActionForm action={deleteItem.bind(null, id, itemId)} confirm={`Hapus item "${item.name}"?`}>
+            <button className="btn btn-danger">Hapus item</button>
+          </ActionForm>
+        </div>
+      </section>
     </>
   );
 }

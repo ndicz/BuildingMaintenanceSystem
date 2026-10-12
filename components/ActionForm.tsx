@@ -2,6 +2,7 @@
 
 import { type FormEvent, type ReactNode, useState, useTransition } from "react";
 import type { FormState } from "@/lib/form";
+import { Notice } from "./Notice";
 
 type Props = {
   action: (fd: FormData) => Promise<FormState>;
@@ -31,11 +32,7 @@ export function ActionForm({ action, children, className, confirm }: Props) {
 
   return (
     <form onSubmit={onSubmit} className={className} aria-busy={pending}>
-      {error && (
-        <div className="alert alert-error" role="alert">
-          {error}
-        </div>
-      )}
+      {error && <Notice tone="error">{error}</Notice>}
       <fieldset disabled={pending} className="plain">
         {children}
       </fieldset>

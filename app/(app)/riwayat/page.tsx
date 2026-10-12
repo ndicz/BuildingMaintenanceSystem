@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { fmtDateTime, fmtHours, startOfDayWib } from "@/lib/format";
 import { getEquipmentOptions } from "@/lib/queries";
+import { PageHeader } from "@/components/PageHeader";
 import { PrintButton } from "@/components/PrintButton";
 
 export const metadata = { title: "Riwayat" };
@@ -42,12 +43,13 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <div className="page-head">
-        <h1>Riwayat</h1>
-        <PrintButton />
-      </div>
+      <PageHeader
+        title="Riwayat"
+        desc={tipe === "jam" ? "Semua angka hour meter yang pernah diinput." : "Semua pekerjaan perawatan yang sudah ditandai selesai."}
+        actions={<PrintButton />}
+      />
 
-      <div className="tabs no-print">
+      <div className="segmented no-print">
         <Link href={tabHref("pekerjaan")} className={tipe === "pekerjaan" ? "active" : undefined}>
           Pekerjaan selesai
         </Link>
@@ -56,7 +58,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
         </Link>
       </div>
 
-      <form className="card filters no-print" method="get">
+      <form className="panel filters no-print" method="get">
         <input type="hidden" name="tipe" value={tipe} />
         <label className="field">
           <span className="field-label">Mesin</span>
@@ -64,30 +66,32 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
             <option value="">Semua mesin</option>
             {options.map((o) => (
               <option key={o.id} value={o.id}>
-                {o.code} · {o.name}
+                {o.code} — {o.name}
               </option>
             ))}
           </select>
         </label>
         <label className="field">
-          <span className="field-label">Dari tanggal</span>
+          <span className="field-label">Dari</span>
           <input type="date" name="dari" defaultValue={sp.dari} />
         </label>
         <label className="field">
-          <span className="field-label">Sampai tanggal</span>
+          <span className="field-label">Sampai</span>
           <input type="date" name="sampai" defaultValue={sp.sampai} />
         </label>
-        <div className="actions">
-          <button className="btn btn-primary">Tampilkan</button>
-          <Link href={`/riwayat?tipe=${tipe}`} className="btn btn-secondary">
-            Reset
-          </Link>
+        <div className="form-actions">
+          <button className="btn btn-primary">Terapkan</button>
+          {(mesin || sp.dari || sp.sampai) && (
+            <Link href={`/riwayat?tipe=${tipe}`} className="btn btn-secondary">
+              Reset
+            </Link>
+          )}
         </div>
       </form>
 
-      <section className="card">
+      <section className="panel">
         {rows === 0 ? (
-          <p className="empty">Tidak ada data untuk filter ini.</p>
+          <div className="empty">Tidak ada data untuk filter ini.</div>
         ) : (
           <div className="table-wrap">
             {tipe === "pekerjaan" ? (
@@ -107,12 +111,14 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                     <tr key={l.id}>
                       <td className="small nowrap" data-label="Waktu">{fmtDateTime(l.createdAt)}</td>
                       <td data-label="Mesin">
-                        <Link href={`/mesin/${l.equipmentId}`}>{l.equipment.code}</Link>
+                        <Link href={`/mesin/${l.equipmentId}`} className="mono">
+                          {l.equipment.code}
+                        </Link>
                       </td>
                       <td className="primary">{l.itemName}</td>
                       <td className="num" data-label="Di jam">{fmtHours(l.doneHours)}</td>
-                      <td data-label="Oleh">{l.user?.name ?? "-"}</td>
-                      <td className="small" data-label="Catatan">{l.note || "-"}</td>
+                      <td data-label="Oleh">{l.user?.name ?? "—"}</td>
+                      <td className="small" data-label="Catatan">{l.note || "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -134,12 +140,14 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                     <tr key={l.id}>
                       <td className="small nowrap" data-label="Waktu">{fmtDateTime(l.createdAt)}</td>
                       <td data-label="Mesin">
-                        <Link href={`/mesin/${l.equipmentId}`}>{l.equipment.code}</Link>
+                        <Link href={`/mesin/${l.equipmentId}`} className="mono">
+                          {l.equipment.code}
+                        </Link>
                       </td>
                       <td className="num" data-label="Sebelumnya">{fmtHours(l.previousHours)}</td>
                       <td className="num" data-label="Jam baru">{fmtHours(l.reading)}</td>
-                      <td data-label="Oleh">{l.user?.name ?? "-"}</td>
-                      <td className="small" data-label="Catatan">{l.note || "-"}</td>
+                      <td data-label="Oleh">{l.user?.name ?? "—"}</td>
+                      <td className="small" data-label="Catatan">{l.note || "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -147,7 +155,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
             )}
           </div>
         )}
-        {rows === LIMIT && <p className="muted small">Menampilkan {LIMIT} data terbaru. Persempit filter tanggal untuk melihat data lama.</p>}
+        {rows === LIMIT && <p className="faint small" style={{ padding: "10px 16px" }}>Menampilkan {LIMIT} data terbaru. Persempit filter tanggal untuk melihat data lama.</p>}
       </section>
     </>
   );

@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { initials } from "@/lib/format";
+import { PageHeader } from "@/components/PageHeader";
 
 export const metadata = { title: "Pengguna" };
 
@@ -10,13 +13,17 @@ export default async function UsersPage() {
 
   return (
     <>
-      <div className="page-head">
-        <h1>Pengguna</h1>
-        <Link href="/pengguna/baru" className="btn btn-primary">
-          + Tambah Pengguna
-        </Link>
-      </div>
-      <div className="card">
+      <PageHeader
+        title="Pengguna"
+        desc="Akun admin dan teknisi yang bisa masuk ke aplikasi."
+        actions={
+          <Link href="/pengguna/baru" className="btn btn-primary">
+            <Plus size={16} />
+            Tambah pengguna
+          </Link>
+        }
+      />
+      <section className="panel">
         <div className="table-wrap">
           <table className="cards">
             <thead>
@@ -30,22 +37,29 @@ export default async function UsersPage() {
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} className={u.active ? undefined : "row-inactive"}>
-                  <td className="primary">{u.name}</td>
-                  <td data-label="Username">{u.username}</td>
+                <tr key={u.id} className={u.active ? undefined : "inactive"}>
+                  <td className="primary">
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                      <span className="avatar">{initials(u.name)}</span>
+                      {u.name}
+                    </span>
+                  </td>
+                  <td data-label="Username" className="mono">
+                    {u.username}
+                  </td>
                   <td data-label="Peran">{u.role === "ADMIN" ? "Admin" : "Teknisi"}</td>
-                  <td data-label="Status">{u.active ? "Aktif" : "Nonaktif"}</td>
-                  <td data-label="Aksi">
-                    <Link href={`/pengguna/${u.id}`} className="small">
-                      Edit
-                    </Link>
+                  <td data-label="Status">
+                    <span className={`status ${u.active ? "status-ok" : "status-none"}`}>{u.active ? "Aktif" : "Nonaktif"}</span>
+                  </td>
+                  <td data-label="">
+                    <Link href={`/pengguna/${u.id}`}>Ubah</Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </>
   );
 }
