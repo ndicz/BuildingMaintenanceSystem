@@ -1,0 +1,91 @@
+// Database lokal memakai SQLite (satu file, tanpa server).
+// Saat pindah ke Vercel + Supabase/Neon, ganti provider menjadi "postgresql"
+// dan DATABASE_URL di .env, lalu jalankan `npx prisma migrate dev` ulang.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  username     String   @unique
+  passwordHash String
+  // "ADMIN" atau "TEKNISI"
+  role         String   @default("TEKNISI")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  hourLogs        HourLog[]
+  maintenanceLogs MaintenanceLog[]
+}
+
+model Equipment {
+  id             Int       @id @default(autoincrement())
+  code           String    @unique
+  name           String
+  location       String    @default("")
+  category       String    @default("")
+  currentHours   Float     @default(0)
+  hoursUpdatedAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  items           MaintenanceItem[]
+  hourLogs        HourLog[]
+  maintenanceLogs MaintenanceLog[]
+}
+
+model MaintenanceItem {
+  id            Int      @id @default(autoincrement())
+  equipmentId   Int
+  name          String
+  intervalHours Float
+  // Jam mesin saat item ini terakhir dikerjakan.
+  lastDoneHours Float    @default(0)
+  description   String   @default("")
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  equipment Equipment        @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  logs      MaintenanceLog[]
+
+  @@index([equipmentId])
+}
+
+model HourLog {
+  id            Int      @id @default(autoincrement())
+  equipmentId   Int
+  userId        Int?
+  previousHours Float
+  reading       Float
+  note          String   @default("")
+  createdAt     DateTime @default(now())
+
+  equipment Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([equipmentId, createdAt])
+}
+
+model MaintenanceLog {
+  id          Int      @id @default(autoincrement())
+  equipmentId Int
+  itemId      Int?
+  userId      Int?
+  // Nama item disimpan ulang agar riwayat tetap terbaca walau item dihapus/diubah.
+  itemName    String
+  doneHours   Float
+  note        String   @default("")
+  createdAt   DateTime @default(now())
+
+  equipment Equipment        @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  item      MaintenanceItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  user      User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([equipmentId, createdAt])
+  @@index([createdAt])
+}
