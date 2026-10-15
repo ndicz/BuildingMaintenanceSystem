@@ -50,17 +50,17 @@ const DEMO_EQUIPMENT = [
 async function upsertUser(username: string, name: string, role: "ADMIN" | "TEKNISI", password: string) {
   const existing = await prisma.user.findUnique({ where: { username } });
   if (existing) return existing;
-  console.log(`  + pengguna ${username} / ${password} (${role})`);
+  console.log(`  + pengguna ${username} (${role})`);
   return prisma.user.create({ data: { username, name, role, passwordHash: await bcrypt.hash(password, 10) } });
 }
 
 async function main() {
   console.log("Mengisi data awal...");
-  const admin = await upsertUser("admin", "Administrator", "ADMIN", "admin123");
+  const admin = await upsertUser("admin", "Administrator", "ADMIN", process.env.SEED_ADMIN_PASSWORD || "admin123");
 
   if (process.env.SEED_DEMO === "false") return;
 
-  await upsertUser("teknisi", "Teknisi Contoh", "TEKNISI", "teknisi123");
+  await upsertUser("teknisi", "Teknisi Contoh", "TEKNISI", process.env.SEED_TEKNISI_PASSWORD || "teknisi123");
   if ((await prisma.equipment.count()) > 0) {
     console.log("  Mesin sudah ada, data contoh dilewati.");
     return;

@@ -4,18 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "tsx scripts/db-deploy.ts && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test lib/*.test.ts",
-    "db:setup": "prisma migrate deploy && prisma db seed",
-    "db:reset": "prisma migrate reset --force",
+    "db:setup": "tsx scripts/db-deploy.ts",
+    "db:reset": "prisma migrate reset --force --skip-seed && tsx scripts/db-deploy.ts",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate dev"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "5.3.0",

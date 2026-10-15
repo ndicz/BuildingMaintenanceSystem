@@ -24,6 +24,17 @@ export default async function LoginPage() {
           </Field>
           <button className="btn btn-primary btn-block btn-lg">Masuk</button>
         </ActionForm>
+        {process.env.DEMO_MODE === "true" && (
+          <div className="demo-box">
+            <strong>Akun demo</strong>
+            <div>
+              Admin: <span className="mono">admin</span> / <span className="mono">admin123</span>
+            </div>
+            <div>
+              Teknisi: <span className="mono">teknisi</span> / <span className="mono">teknisi123</span>
+            </div>
+          </div>
+        )}
         <p className="login-foot">Lupa password? Minta admin untuk mengatur ulang.</p>
       </div>
     </main>

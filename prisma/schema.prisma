@@ -1,12 +1,11 @@
-// Database lokal memakai SQLite (satu file, tanpa server).
-// Saat pindah ke Vercel + Supabase/Neon, ganti provider menjadi "postgresql"
-// dan DATABASE_URL di .env, lalu jalankan `npx prisma migrate dev` ulang.
+// Database: PostgreSQL. Lokal bisa pakai Postgres sendiri atau database gratis di Neon;
+// di Vercel pakai Neon dari Vercel Marketplace (otomatis mengisi DATABASE_URL).
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

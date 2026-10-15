@@ -297,6 +297,8 @@ tr.inactive td { color: var(--ink-3); }
 .login-box .brand { padding: 0; margin-bottom: 28px; }
 .login-box h1 { margin-bottom: 4px; }
 .login-box .desc { color: var(--ink-2); margin-bottom: 22px; }
+.demo-box { margin-top: 20px; padding: 12px 14px; border: 1px dashed var(--line-strong); border-radius: var(--radius); background: var(--surface-2); font-size: 0.9rem; color: var(--ink-2); }
+.demo-box strong { display: block; color: var(--ink); margin-bottom: 2px; }
 .login-foot { color: var(--ink-3); font-size: 0.857rem; margin-top: 18px; }
 
 /* ---------- HP ---------- */

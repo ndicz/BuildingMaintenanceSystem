@@ -25,7 +25,11 @@ Cara hitung: `jam terpakai = jam mesin sekarang − jam saat item terakhir diker
 
 ## Menjalankan di komputer lokal
 
-Kebutuhan: **Node.js 20 atau lebih baru** ([nodejs.org](https://nodejs.org)).
+Kebutuhan:
+- **Node.js 20 atau lebih baru** ([nodejs.org](https://nodejs.org))
+- **Database PostgreSQL**. Pilih salah satu:
+  - Database gratis di [Neon](https://neon.tech): buat project, lalu salin *connection string*-nya (paling mudah).
+  - Postgres di komputer sendiri, misalnya `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=maintenance postgres:16`
 
 ```bash
 # 1. Install dependency
@@ -33,10 +37,10 @@ npm install
 
 # 2. Buat file pengaturan
 cp .env.example .env          # Windows: copy .env.example .env
-#    Lalu buka .env dan ganti AUTH_SECRET dengan teks acak panjang, contoh membuat:
+#    Lalu buka .env, isi DATABASE_URL, dan ganti AUTH_SECRET dengan teks acak panjang:
 #    node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
-# 3. Buat database + isi data awal
+# 3. Buat tabel database + isi data awal
 npm run db:setup
 
 # 4. Jalankan
@@ -52,24 +56,24 @@ Buka <http://localhost:3000>.
 | `admin`   | `admin123`   | Admin   |
 | `teknisi` | `teknisi123` | Teknisi |
 
-**Segera ganti password** lewat menu **Akun** setelah login.
+**Segera ganti password** lewat menu **Akun** setelah login, atau atur password awal lewat
+`SEED_ADMIN_PASSWORD` / `SEED_TEKNISI_PASSWORD` sebelum `db:setup`.
 
 Data contoh (genset, chiller, pompa) ikut dibuat agar alurnya langsung terlihat.
-Untuk instalasi bersih tanpa data contoh, jalankan `SEED_DEMO=false npm run db:setup`
-(hanya akun `admin` yang dibuat). Data contoh juga bisa dihapus dari menu **Mesin**.
+Untuk instalasi bersih tanpa data contoh, set `SEED_DEMO=false` (hanya akun `admin` yang dibuat).
+Data contoh juga bisa dihapus dari menu **Mesin**.
 
 ### Perintah lain
 
 | Perintah | Fungsi |
 |---|---|
 | `npm run dev` | Jalankan mode pengembangan |
-| `npm run build && npm start` | Jalankan mode produksi |
-| `npm test` | Tes perhitungan status |
+| `npm run build && npm start` | Jalankan mode produksi (build juga menjalankan migrasi database) |
+| `npm test` | Tes perhitungan status & alamat database |
 | `npm run typecheck` | Cek tipe TypeScript |
+| `npm run db:migrate` | Buat migrasi baru setelah mengubah `prisma/schema.prisma` |
 | `npm run db:studio` | Lihat/ubah isi database lewat browser (Prisma Studio) |
 | `npm run db:reset` | **Hapus semua data** lalu isi ulang data awal |
-
-Database lokal tersimpan di `prisma/dev.db`. Untuk backup cukup salin file tersebut.
 
 ## Cara pakai singkat
 
@@ -96,18 +100,27 @@ prisma/
   seed.ts           data awal
 ```
 
-Teknologi: Next.js 15 (App Router), Prisma ORM, SQLite (lokal), bcrypt untuk password,
+Teknologi: Next.js 15 (App Router), Prisma ORM, PostgreSQL, bcrypt untuk password,
 font IBM Plex dan ikon Lucide (semua terpasang lewat npm, tidak butuh internet saat dijalankan).
 
-## Rencana pindah ke Vercel (nanti)
+## Deploy ke Vercel (demo)
 
-Vercel tidak bisa menyimpan file database SQLite, jadi database dipindah ke Postgres online
-(mis. Supabase atau Neon, keduanya punya paket gratis):
+Aplikasi ini berdiri sendiri. Bisa ditaruh di akun Vercel yang sama dengan aplikasi lain (mis. HRIS)
+sebagai **project terpisah**, dengan database sendiri, tanpa menyentuh aplikasi lain.
 
-1. Buat database Postgres di Supabase/Neon, salin connection string-nya.
-2. Di `prisma/schema.prisma` ubah `provider = "sqlite"` menjadi `provider = "postgresql"`.
-3. Hapus folder `prisma/migrations`, isi `DATABASE_URL` di `.env` dengan connection string Postgres,
-   lalu jalankan `npx prisma migrate dev --name init` dan `npx prisma db seed`.
-4. Push ke GitHub, import repo di Vercel, lalu isi environment variable `DATABASE_URL` dan `AUTH_SECRET`.
+1. **Vercel → Add New → Project**, lalu import repo `ndicz/BuildingMaintenanceSystem`.
+   Framework otomatis terdeteksi sebagai Next.js; build command tidak perlu diubah.
+2. Sebelum klik Deploy, buka **Environment Variables** dan isi:
+   - `AUTH_SECRET`: teks acak panjang (lihat perintah di atas)
+   - `DEMO_MODE` = `true` agar akun demo tampil di halaman login (hapus untuk pemakaian sungguhan)
+3. Klik **Deploy**. Deploy pertama akan **gagal** karena database belum ada; itu normal.
+4. Di project tersebut buka **Storage → Create Database → Neon**, lalu hubungkan ke project ini.
+   Vercel otomatis mengisi `DATABASE_URL`.
+   Pastikan ini database **baru**, bukan database HRIS.
+5. Buka **Deployments → Redeploy**. Saat build, tabel dibuat dan data awal diisi otomatis.
 
-Kode aplikasi lainnya tidak perlu diubah.
+Setiap push ke branch produksi akan otomatis di-deploy ulang. Migrasi database ikut berjalan,
+dan data yang sudah ada tidak diubah.
+
+Catatan: paket gratis Vercel (Hobby) menurut aturannya hanya untuk pemakaian non-komersial.
+Paket Neon gratis membatasi jumlah project/database. Cek kuota keduanya di akun yang dipakai.
